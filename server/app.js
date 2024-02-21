@@ -17,6 +17,10 @@ app.get('/trigger', (req, res) => {
     res.send('Backend Service at render Re-triggered!!!');
 }); 
 
+app.get('/', (req, res) => {
+    res.send('Backend Service for DeliverWise Running');
+});
+
 console.log(process.env.MONGO_URI);
 // db
 mongoose.connect(process.env.MONGO_URI,{
