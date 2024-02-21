@@ -12,6 +12,12 @@ const path = require('path');
 // server
 const app = express();
 
+// endpoint fo retriggering render
+app.get('/trigger', (req, res) => {
+    res.send('Backend Service at render Re-triggered!!!');
+}); 
+
+
 // db
 mongoose.connect(process.env.MONGO_URI,{
     useNewUrlParser: true,
@@ -36,24 +42,6 @@ app.use("/", chatRoutes);
 const messageRoutes = require("./routes/messageRoutes");
 app.use("/", messageRoutes);
 
-
-// Deployment
-const __dirname1 = path.resolve();
-// For Production Server
-if(process.env.NODE_ENV === 'PROD'){
-
-    app.use(express.static(path.join(__dirname1,"/client/build")));
-
-    app.get("*",(req,res) => {
-        res.sendFile(path.resolve(__dirname1,"client","build","index.html"));
-    })
-} 
-// For Dev server
-else {
-    app.get("/", (req,res) => {
-        res.send("Backend Server Running......!")
-    })
-}
 
 const port = process.env.PORT || 8080;
 const server = app.listen(port, () => console.log(`Backend Server is running on port ${port}`));
