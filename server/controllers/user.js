@@ -56,10 +56,58 @@ exports.register = async (req, res) => {
         to: user.email,
         from: "deliverwise@gmail.com",
         subject: "signup successful",
-        html: "<h1>welcome to DeliverWise</h1>"
+        html: `<!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Welcome to DeliverWise</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #f4f4f4;
+                            margin: 0;
+                            padding: 0;
+                        }
+                        .container {
+                            max-width: 600px;
+                            margin: 20px auto;
+                            padding: 20px;
+                            background-color: #fff;
+                            border-radius: 8px;
+                            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                        }
+                        h1 {
+                            color: #333;
+                            text-align: center;
+                        }
+                        p {
+                            color: #666;
+                            line-height: 1.6;
+                        }
+                        .footer {
+                            margin-top: 20px;
+                            text-align: center;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>Welcome to DeliverWise</h1>
+                        <p>Dear ${user.username},</p>
+                        <p>Thank you for signing up with DeliverWise! We're excited to have you on board.</p>
+                        <p>With DeliverWise, you can enjoy convenient and reliable delivery services right at your fingertips.</p>
+                        <p>If you have any questions or need assistance, feel free to reach out to our support team at deliverwise@gmail.com.</p>
+                        <p>Best regards,</p>
+                        <p>The DeliverWise Team</p>
+                    </div>
+                </body>
+                </html>
+                `
     });
     res.status(201).json({
-        message: "You have successfully signed up. You can login to proceed",
+        message: "Sign-up Successful",
     });
 };
 
@@ -112,7 +160,7 @@ exports.login = async (req, res) => {
         var dw_otp = Math.random();
         dw_otp = dw_otp * 1000000;
         dw_otp = parseInt(dw_otp);
-        //console.log(dw_otp);
+        console.log(dw_otp);
 
         // create transporter to send email
         const transporter = nodemailer.createTransport({
@@ -137,9 +185,60 @@ exports.login = async (req, res) => {
                         to: user.email,
                         from: "deliverwise@gmail.com",
                         subject: "OTP to log into DeliverWise",
-                        html: `<h4> Your OTP for logging into DeliverWise is : ${dw_otp}, <p>use this OTP to complete the verification process.</p> </h4>`
+                        html: `
+                        <html>
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <title>OTP for Two-Factor Authentication - DeliverWise</title>
+                            <style>
+                                /* Include your CSS styles here */
+                                body {
+                                    font-family: Arial, sans-serif;
+                                    background-color: #f4f4f4;
+                                    margin: 0;
+                                    padding: 0;
+                                }
+                                .container {
+                                    max-width: 600px;
+                                    margin: 20px auto;
+                                    padding: 20px;
+                                    background-color: #fff;
+                                    border-radius: 8px;
+                                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                                }
+                                h1 {
+                                    color: #333;
+                                    text-align: center;
+                                }
+                                p {
+                                    color: #666;
+                                    line-height: 1.6;
+                                }
+                                .otp {
+                                    font-size: 24px;
+                                    font-weight: bold;
+                                    text-align: center;
+                                    margin-top: 20px;
+                                    margin-bottom: 30px;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <h1>Two-Factor Authentication - DeliverWise</h1>
+                                <p>Dear ${user.email},</p>
+                                <p>Your One-Time Password (OTP) for Two-Factor Authentication is:</p>
+                                <div class="otp">${dw_otp}</div>
+                                <p>Please use this OTP to log in to your DeliverWise account.</p>
+                                <p>If you did not request this OTP, please ignore this email.</p>
+                            </div>
+                        </body>
+                        </html>
+                    `
                     })
-                    res.json({ message: "check email to find your OTP" })
+                    res.json({ message: "OTP sent to E-Mail" })
                 })
 
             })
@@ -151,7 +250,7 @@ exports.logout = (req, res) => {
     res.clearCookie("jwt");
 
     return res.json({
-        message: "You have successfully logged out"
+        message: "Logout Successful"
     });
 };
 
