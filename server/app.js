@@ -12,16 +12,16 @@ const path = require('path');
 // server
 const app = express();
 
-// endpoint fo retriggering render
-app.get('/trigger', (req, res) => {
-    res.send('Backend Service at render Re-triggered!!!');
-}); 
+/*
+
+TODO: CRON JOB for hitting the deployment url for every 30 min.
+Reason: free verson of Render goes down after sometime of inactivity
+*/
 
 app.get('/', (req, res) => {
     res.send('Backend Service for DeliverWise Running');
 });
 
-console.log(process.env.MONGO_URI);
 // db
 mongoose.connect(process.env.MONGO_URI,{
     useNewUrlParser: true,
@@ -50,10 +50,12 @@ app.use("/", messageRoutes);
 const port = process.env.PORT || 8080;
 const server = app.listen(port, () => console.log(`Backend Server is running on port ${port}`));
 
+
+// for chat app
 const io = require("socket.io")(server, {
     pingTimeout: 60000,
     cors: {
-      origin: process.env.REACT_APP_API_URL,
+        origin: process.env.DEPLOY_URL,
     },
   });
 
