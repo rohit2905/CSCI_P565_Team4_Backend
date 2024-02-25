@@ -16,8 +16,8 @@ const serviceSchema = new mongoose.Schema({
         unique: false,
         lowercase: true,
     },
-    ServicePrice: {
-        type: String,
+    ServiceId: {
+        type: Number,
         required: true,
         trim: true,
         unique: false,
