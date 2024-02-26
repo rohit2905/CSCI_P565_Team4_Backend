@@ -59,3 +59,10 @@ const io = require("socket.io")(server, {
     },
   });
 
+/*
+TODO: Chats socket connections: kirthivasan pending
+*/
+
+/*
+TODO: Searching and filtering: kirthivasan and shalini
+*/
