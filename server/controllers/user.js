@@ -288,11 +288,62 @@ exports.resetpassword = (req, res) => {
                         from: "deliverwise@gmail.com",
                         subject: "Reset Password",
                         html: `
-                    <p>As per your request to reset password</p>
-                     <h5>click on this <a href="${process.env.DEPLOY_URL}newpassword/${token_rs}">link</a> to reset password</h5>
+                        <!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <title>Password Reset Email</title>
+                            <style>
+                                /* Add your email styles here */
+                                body {
+                                    font-family: Arial, sans-serif;
+                                    line-height: 1.6;
+                                    margin: 0;
+                                    padding: 0;
+                                    background-color: #f4f4f4;
+                                }
+                                .container {
+                                    max-width: 600px;
+                                    margin: 20px auto;
+                                    padding: 20px;
+                                    background-color: #fff;
+                                    border-radius: 5px;
+                                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                                }
+                                h2 {
+                                    color: #333;
+                                }
+                                p {
+                                    margin-bottom: 20px;
+                                }
+                                a {
+                                    color: #007bff;
+                                    text-decoration: none;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <h2>Password Reset</h2>
+                                <p>Hello ${user.email},</p>
+                                <p>We have received a request to reset your password for your Deliverwise account. To proceed with resetting your password, please follow the instructions below:</p>
+                                <ol>
+                                    <li>Click on the following link to reset your password: <a href="${process.env.DEPLOY_URL}newpassword/${token_rs}">Reset Password</a></li>
+                                    <li>You will be directed to a page where you can enter your new password.</li>
+                                </ol>
+                                <ul>
+                                    <li>If you did not request a password reset, please ignore this email. Your account remains secure.</li>
+                                </ul>
+                                <p>If you encounter any issues or have questions, please feel free to contact our support team at <a href="mailto:deliverwise@gmail.com">DeliverWise Support</a>.</p>
+                                <p>Thank you,</p>
+                                <p>Team DeliverWise</p>
+                            </div>
+                        </body>
+                        </html>
                      `
                     })
-                    res.json({ message: "check email for link to reset password" })
+                    res.json({ message: "Password Reset Email Sent" })
                 })
 
             })
