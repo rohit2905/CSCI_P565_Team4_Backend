@@ -123,7 +123,13 @@ exports.login = async (req, res) => {
                     error: "Invalid Credentials",
                 });
             }
+            if (otp != user.otp){
+                return res.status(401).json({
+                    error: "Invalid OTP",
+                });
+            }
 
+        
             // is user is found, we authenticate method from model
             if (!user.authenticate(password)) {
                 return res.status(401).json({
@@ -138,10 +144,28 @@ exports.login = async (req, res) => {
 
             // persist the token as 'jwt' in cookie with an expiry date
             res.cookie("jwt", token, { expire: new Date() + 9999, httpOnly: true });
+            console.log("hiiiii");
+
+            console.log(req.body.userType);
+            if (user.passReset) {
+                
+                User.findOneAndUpdate({ userType: req.body.userType, email: req.body.email },
+                    { passReset: false },
+                    { new: true },
+                    (err, updatedUser) => {
+                        if (err || !updatedUser) {
+                            console.error("Failed to update passReset field");
+                            // Handle error here
+                        }
+                    }
+                );
+            }
+
+            
 
             // return the response with the user
             const { email, userType, username } = user;
-            return res.status(401).json({
+            return res.status(200).json({
                 message: "You have successfully logged in",
                 email,
                 username,
@@ -155,7 +179,6 @@ exports.login = async (req, res) => {
     // to send otp if it does not exist
     else {
         const { userType, email } = req.body;
-
        
         var dw_otp = Math.random();
         dw_otp = dw_otp * 1000000;
@@ -177,6 +200,11 @@ exports.login = async (req, res) => {
                     return res.status(422).json({
                         error: "User doesn't exist with that email/user type"
                     })
+                }
+                if (!user.authenticate(password)) {
+                    return res.status(401).json({
+                        error: "Invalid email or password",
+                    });
                 }
                 user.otp = dw_otp
                 user.expireotp = Date.now() + 1200000
@@ -238,7 +266,8 @@ exports.login = async (req, res) => {
                         </html>
                     `
                     })
-                    res.json({ message: "OTP sent to E-Mail" })
+                    const { passReset } = user;
+                    res.json({ message: "OTP sent to E-Mail", passReset, })
                 })
 
             })
@@ -361,6 +390,7 @@ exports.newpassword = async (req, res) => {
                 return res.status(422).json({ error: "Password reset session expired" })
             }
             user.hashedPassword = crypto.createHmac("sha256", user.salt).update(newpassword).digest("hex");
+            user.passReset = true
             user.resetToken = undefined;
             user.expireToken = undefined;
             user.save().then((saveduser) => {
