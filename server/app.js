@@ -46,6 +46,8 @@ app.use("/", chatRoutes);
 const messageRoutes = require("./routes/messageRoutes");
 app.use("/", messageRoutes);
 
+const serviceRoutes = require("./routes/serviceRoutes");
+app.use("/", serviceRoutes);
 
 const port = process.env.PORT || 8080;
 const server = app.listen(port, () => console.log(`Backend Server is running on port ${port}`));
