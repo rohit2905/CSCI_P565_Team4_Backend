@@ -1,57 +1,45 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Customer Form</title>
-  </head>
-  <body>
-    <h1>Customer Form</h1>
-    <form id="customerForm" action="/api/customers" method="POST">
-      <label for="name">Name:</label>
-      <input type="text" id="name" name="name" required /><br /><br />
-      <label for="email">Email:</label>
-      <input type="email" id="email" name="email" required /><br /><br />
-      <label for="phoneNumber">Phone Number:</label>
-      <input
-        type="text"
-        id="phoneNumber"
-        name="phoneNumber"
-        required
-      /><br /><br />
-      <label for="customerId">Customer ID:</label>
-      <input
-        type="text"
-        id="customerId"
-        name="customerId"
-        required
-      /><br /><br />
-      <button type="submit">Submit</button>
-    </form>
-    <script src="frontend.js"></script>
-  </body>
-</html> -->
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Users Search</title>
-    <style>
-      /* Add your CSS styles here */
-    </style>
+    <title>User Search</title>
   </head>
   <body>
-    <h1>Users Search</h1>
+    <h1>User Search</h1>
     <form id="searchForm">
-      <label for="name">Name:</label>
-      <input type="text" id="name" name="name" /><br /><br />
-      <label for="email">Email:</label>
-      <input type="text" id="email" name="email" /><br /><br />
+      <label for="searchField">Search by:</label>
+      <input type="text" id="searchField" required />
+      <select id="database">
+        <option value="users">Users</option>
+        <option value="services">Services</option>
+      </select>
       <button type="submit">Search</button>
     </form>
-    <div id="results"></div>
+    <div id="searchResults"></div>
+    <h1>Delivery Management System</h1>
+    <form id="courierForm">
+      <label for="courierSize">Courier Size (in cm):</label>
+      <input type="text" id="courierSize" required />
+      <label for="destination">Destination:</label>
+      <select id="destination" required>
+        <option value="domestic">Domestic</option>
+        <option value="international">International</option>
+      </select>
+      <label for="speed">Delivery Speed:</label>
+      <select id="speed" required>
+        <option value="standard">Standard</option>
+        <option value="express">Express</option>
+      </select>
+      <label for="budget">Budget:</label>
+      <select id="budget" required>
+        <option value="$">$</option>
+        <option value="$$">$$</option>
+        <option value="$$$">$$$</option>
+      </select>
+      <button type="submit">Recommend</button>
+    </form>
+    <p id="recommendation"></p>
 
     <script>
       document
@@ -59,38 +47,101 @@
         .addEventListener("submit", async function (event) {
           event.preventDefault();
 
-          const name = document.getElementById("name").value; // Fixed ID here
-          const email = document.getElementById("email").value;
+          const searchField = document.getElementById("searchField").value;
+          const database = document.getElementById("database").value;
+          const searchParam = database === "users" ? "email" : "serviceId";
 
-          // Construct the URL with query parameters
-          let url = `http://localhost:3000/users/search`;
-          if (name) {
-            url += `name=${name}&`;
-          }
-          if (email) {
-            url += `email=${email}&`;
-          }
-
-          // Fetch data from backend API
           try {
-            const response = await fetch(url);
+            const response = await fetch(
+              `http://localhost:3000/${database}?${searchParam}=${searchField}`
+            );
             const data = await response.json();
 
-            // Display results on the page
-            const resultsDiv = document.getElementById("results");
-            resultsDiv.innerHTML = "";
+            const searchResultsDiv = document.getElementById("searchResults");
+            searchResultsDiv.innerHTML = "";
 
-            if (data.length === 0) {
-              resultsDiv.innerHTML = "No results found.";
+            if (response.ok) {
+              let html = "";
+              if (database === "users") {
+                html = `
+              <div>
+                <h2>User Details</h2>
+                <p><strong>ID:</strong> ${data._id}</p>
+                <p><strong>User Type:</strong> ${data.userType}</p>
+                <p><strong>Username:</strong> ${data.username}</p>
+                <p><strong>Email:</strong> ${data.email}</p>
+                <p><strong>Hashed Password:</strong> ${data.hashedPassword}</p>
+                <p><strong>Salt:</strong> ${data.salt}</p>
+                <p><strong>Expire OTP:</strong> ${data.expireotp}</p>
+                <p><strong>OTP:</strong> ${data.otp}</p>
+              </div>
+            `;
+              } else if (database === "services") {
+                html = `
+              <div>
+                <h2>Service Details</h2>
+                <p><strong>ID:</strong> ${data._id}</p>
+                <p><strong>ServiceType:</strong> ${data.ServiceType}</p>
+                <p><strong>ServiceId:</strong> ${data.ServiceId}</p>
+                <p><strong>CarrierName:</strong> ${data.CarrierName}</p>
+                <p><strong>Dimension:</strong> ${data.Dimension}</p>
+                <p><strong>Price:</strong> ${data.Price}</p>
+              </div>
+            `;
+              }
+              searchResultsDiv.innerHTML = html;
             } else {
-              data.forEach((user) => {
-                resultsDiv.innerHTML += `<div>Name: ${user.username}, Email: ${user.email}</div>`; // Fixed variable name here
-              });
+              searchResultsDiv.innerHTML = "<p>Data not found.</p>";
             }
           } catch (error) {
-            console.error("Error fetching data:", error);
+            console.error("Error searching:", error);
           }
         });
+
+      document
+        .getElementById("database")
+        .addEventListener("change", function () {
+          const selectedDatabase = this.value;
+          const searchFieldLabel = document.querySelector(
+            "label[for='searchField']"
+          );
+          searchFieldLabel.textContent =
+            selectedDatabase === "users" ? "Email:" : "Service ID:";
+        });
+
+      // Frontend JavaScript code
+      async function recommendCourier(event) {
+        event.preventDefault();
+
+        const courierSize = document.getElementById("courierSize").value;
+        const destination = document.getElementById("destination").value;
+        const speed = document.getElementById("speed").value;
+        const budget = document.getElementById("budget").value;
+
+        try {
+          const response = await fetch(
+            `http://localhost:3000/api/recommend-courier?size=${courierSize}&destination=${destination}&speed=${speed}&budget=${budget}`
+          );
+          const data = await response.json();
+
+          const recommendation = data.recommendation; // Corrected: accessing recommendation from response data
+          document.getElementById(
+            "recommendation"
+          ).innerText = `Recommended courier service: ${
+            recommendation.courier
+          } (Speed: ${recommendation.speed}, Cost: ${
+            recommendation.cost
+          }, Services: ${recommendation.services.join(", ")})`;
+        } catch (error) {
+          console.error("Error:", error);
+          document.getElementById("recommendation").innerText =
+            "Failed to get recommendation.";
+        }
+      }
+
+      document
+        .getElementById("courierForm")
+        .addEventListener("submit", recommendCourier);
     </script>
   </body>
 </html>

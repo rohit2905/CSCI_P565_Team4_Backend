@@ -1,100 +1,170 @@
 // const express = require("express");
-// const mongoose = require("mongoose");
-// const Customer = require("./routes/customerRoutes");
+// const { MongoClient, ObjectID } = require("mongodb");
+// const cors = require("cors");
 // const app = express();
+// const PORT = process.env.PORT || 3000;
+// const mongoURL = "mongodb+srv://root:root1234@deliverwise.ycjpjzr.mongodb.net/";
+
+// app.use(cors());
 
 // // Connect to MongoDB
-// mongoose
-//   .connect(
-//     "mongodb+srv://root-learn:root12345@kirthi-cluster.lrfcvon.mongodb.net/mernapp",
-//     {
-//       useNewUrlParser: true,
-//       useUnifiedTopology: true,
-//     }
-//   )
-//   .then(() => console.log("Connected to MongoDB"))
-//   .catch((err) => console.error("Error connecting to MongoDB:", err));
+// MongoClient.connect(mongoURL, {
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true,
+// })
+//   .then((client) => {
+//     console.log("Connected to MongoDB");
+//     const db = client.db();
 
-// // Define routes
-// app.use("/api/customers", require("./routes/customerRoutes"));
+//     app.get("/users", (req, res) => {
+//       const { email } = req.query;
 
-// app.post("/api/customers", async (req, res) => {
-//   try {
-//     // Extract customer data from request body
-//     const { name, email, phoneNumber, customerId } = req.body;
-
-//     // Create a new instance of Customer model
-//     const newCustomer = new Customer({
-//       name,
-//       email,
-//       phoneNumber,
-//       customerId,
+//       // Find the user by email
+//       db.collection("users")
+//         .findOne({ email })
+//         .then((user) => {
+//           if (!user) {
+//             res.status(404).json({ error: "User not found" });
+//           } else {
+//             res.json(user);
+//           }
+//         })
+//         .catch((error) => {
+//           console.error("Error searching user:", error);
+//           res.status(500).json({ error: "Internal server error" });
+//         });
 //     });
 
-//     // Save the new customer to the database
-//     await newCustomer.save();
-
-//     // Send success response to the client
-//     res.status(201).json({ message: "Customer data saved successfully" });
-//   } catch (error) {
-//     // Handle any errors that occur during database operation
-//     console.error("Error:", error);
-//     res.status(500).json({ error: "Internal server error" });
-//   }
-// });
-
-// const PORT = process.env.PORT || 5000;
-// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+//     app.listen(PORT, () => {
+//       console.log(`Server is running on port ${PORT}`);
+//     });
+//   })
+//   .catch((error) => {
+//     console.error("Error connecting to MongoDB:", error);
+//   });
 
 const express = require("express");
 const { MongoClient, ObjectID } = require("mongodb");
-
+const cors = require("cors");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const mongoURL = "mongodb+srv://root:root1234@deliverwise.ycjpjzr.mongodb.net/";
 
-// Connect to MongoDB
-MongoClient.connect(mongoURL, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-  .then((client) => {
-    console.log("Connected to MongoDB");
-    const db = client.db();
+app.use(cors());
 
-    // Define routes
-    app.get("/users", (req, res) => {
+const courierRecommendations = {
+  small: "USPS",
+  medium: "DHL",
+  large: "UPS",
+};
+
+// Endpoint to find a user by email
+app.get("/users", (req, res) => {
+  const { email } = req.query;
+
+  // Connect to MongoDB
+  MongoClient.connect(mongoURL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+    .then((client) => {
+      console.log("Connected to MongoDB");
+      const db = client.db();
+
+      // Find the user by email in the "users" collection
       db.collection("users")
-        .find()
-        .toArray()
-        .then((result) => {
-          res.json(result);
+        .findOne({ email })
+        .then((user) => {
+          if (!user) {
+            res.status(404).json({ error: "User not found" });
+          } else {
+            res.json(user);
+          }
         })
         .catch((error) => {
-          console.error("Error fetching users:", error);
+          console.error("Error searching user:", error);
           res.status(500).json({ error: "Internal server error" });
         });
+    })
+    .catch((error) => {
+      console.error("Error connecting to MongoDB:", error);
+      res.status(500).json({ error: "Internal server error" });
     });
+});
 
-    app.get("/users/search", (req, res) => {
-      const { username, email } = req.query; // Get the name and email query parameters
-
-      // Construct the filter based on the provided search criteria
-      const filter = {};
-
-      if (name) {
-        filter.username = username;
-      }
-
-      if (email) {
-        filter.email = email;
-      }
-    });
-
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
+app.get("/services", (req, res) => {
+  const { searchField } = req.query;
+  MongoClient.connect(mongoURL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
   })
-  .catch((error) => {
-    console.error("Error connecting to MongoDB:", error);
-  });
+    .then((client) => {
+      console.log("Connected to MongoDB");
+      const db = client.db();
+
+      db.collection("services")
+        .find({ ServiceId: searchField })
+        .then((services) => {
+          if (services.length === 0) {
+            res.status(404).json({ error: "Service not found" });
+          } else {
+            res.json(services);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching services:", error);
+          res.status(500).json({ error: "Internal server error" });
+        });
+    })
+    .catch((error) => {
+      console.error("Error connecting to MongoDB:", error);
+      res.status(500).json({ error: "Internal server error" });
+    });
+});
+
+app.get("/api/recommend-courier", (req, res) => {
+  const { size, destination, speed, budget } = req.query;
+  if (!size || !destination || !speed || !budget) {
+    return res.status(400).json({ error: "Required parameters are missing." });
+  }
+
+  let recommendation;
+  if (
+    size < 30 &&
+    speed === "standard" &&
+    budget === "$" &&
+    destination === "domestic"
+  ) {
+    recommendation = {
+      courier: courierRecommendations["small"],
+      speed: "Standard",
+      cost: "$",
+      services: ["Tracking"],
+    };
+  } else if (
+    size < 60 &&
+    speed === "express" &&
+    budget === "$$" &&
+    destination === "international"
+  ) {
+    recommendation = {
+      courier: courierRecommendations["medium"],
+      speed: "Express",
+      cost: "$$",
+      services: ["Tracking", "Insurance"],
+    };
+  } else {
+    recommendation = {
+      courier: courierRecommendations["large"],
+      speed: "Express",
+      cost: "$$$",
+      services: ["Tracking", "Insurance", "Same-day Delivery"],
+    };
+  }
+
+  res.json({ recommendation });
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
