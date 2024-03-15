@@ -52,7 +52,7 @@ exports.register = async (req, res) => {
     const user = new User(req.body);
     await user.save();
 
-if(process.env.PROD === 'true'){
+if(process.env.ENV != 'test'){
     transporter.sendMail({
         to: user.email,
         from: "deliverwise@gmail.com",
