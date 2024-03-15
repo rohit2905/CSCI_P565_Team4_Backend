@@ -6,7 +6,7 @@
   "scripts": {
     "start": "nodemon app.js",
     "build": "echo 'No build step required for backend :p'",
-    "test": "cross-env ENV=test jest"
+    "test": "cross-env ENV=test npx jest"
   },
   "author": "Team4",
   "license": "ISC",
