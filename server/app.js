@@ -23,7 +23,7 @@ app.get('/', (req, res) => {
 });
 
 // db
-mongoose.connect(process.env.MONGO_URI,{
+mongoose.connect(process.env.ENV === 'test' ?process.env.MONGO_URI_TEST:process.env.MONGO_URI,{
     useNewUrlParser: true,
     useUnifiedTopology: true,
 }).then(() => console.log("Database Connectecd...")).catch((err) => console.log("Database Connection Error", err));
@@ -50,7 +50,10 @@ const serviceRoutes = require("./routes/serviceRoutes");
 app.use("/", serviceRoutes);
 
 const port = process.env.PORT || 8080;
-const server = app.listen(port, () => console.log(`Backend Server is running on port ${port}`));
+const server = app.listen(port, () => {
+    const address = server.address();
+    console.log(`Backend Server is running on port ${port}`)
+});
 
 
 // for chat app
@@ -68,3 +71,4 @@ TODO: Chats socket connections: kirthivasan pending
 /*
 TODO: Searching and filtering: kirthivasan and shalini
 */
+module.exports = app;

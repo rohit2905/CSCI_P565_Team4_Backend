@@ -52,6 +52,7 @@ exports.register = async (req, res) => {
     const user = new User(req.body);
     await user.save();
 
+if(process.env.PROD === 'true'){
     transporter.sendMail({
         to: user.email,
         from: "deliverwise@gmail.com",
@@ -106,6 +107,7 @@ exports.register = async (req, res) => {
                 </html>
                 `
     });
+}
     res.status(201).json({
         message: "Sign-up Successful",
     });
