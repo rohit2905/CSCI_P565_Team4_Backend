@@ -16,13 +16,6 @@ const serviceSchema = new mongoose.Schema({
         unique: false,
         lowercase: true,
     },
-    ServiceId: {
-        type: Number,
-        required: true,
-        trim: true,
-        unique: false,
-        lowercase: true,
-    },
     Dimension: {
         type: String,
         required: true,
