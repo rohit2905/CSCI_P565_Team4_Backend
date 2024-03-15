@@ -19,8 +19,8 @@ afterAll(async () => {
     await mongoServer.stop();
 });
 
-describe('GET /', () => {
-    it('responds with success', async () => {
+describe('PING TEST /', () => {
+    it('server and database is up', async () => {
         await request(app)
             .get('/')
             .expect(200);

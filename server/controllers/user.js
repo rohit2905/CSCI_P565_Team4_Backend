@@ -25,12 +25,11 @@ exports.register = async (req, res) => {
         email: req.body.email,
         userType: req.body.userType
     });
-    console.log(req.body);
+
     const useraccessExists = await Useraccess.findOne({
         userType: req.body.userType,
         email: req.body.email,
     });
-    console.log(useraccessExists);
     if (!(useraccessExists) == null) {
         return res.status(403).json({
             error: "User doesn't have access to create required account",
@@ -52,7 +51,7 @@ exports.register = async (req, res) => {
     const user = new User(req.body);
     await user.save();
 
-if(process.env.PROD === 'true'){
+if(process.env.ENV != 'test'){
     transporter.sendMail({
         to: user.email,
         from: "deliverwise@gmail.com",
@@ -146,9 +145,6 @@ exports.login = async (req, res) => {
 
             // persist the token as 'jwt' in cookie with an expiry date
             res.cookie("jwt", token, { expire: new Date() + 9999, httpOnly: true });
-            console.log("hiiiii");
-
-            console.log(req.body.userType);
             if (user.passReset) {
                 
                 User.findOneAndUpdate({ userType: req.body.userType, email: req.body.email },
@@ -185,7 +181,6 @@ exports.login = async (req, res) => {
         var dw_otp = Math.random();
         dw_otp = dw_otp * 1000000;
         dw_otp = parseInt(dw_otp);
-        console.log(dw_otp);
 
         // create transporter to send email
         const transporter = nodemailer.createTransport({
@@ -416,7 +411,6 @@ exports.order = async (req, res) => {
 
     // let's create the order
     const order = new Order(req.body);
-    console.log(order.PriorityStatus, order.TrackingID);
     await order.save();
 
     res.status(201).json({
@@ -426,15 +420,9 @@ exports.order = async (req, res) => {
 
 exports.orderemail = async (req, res) => {
     const email = req.body.email;
-    console.log(email);
     const cost = req.body.Cost;
     const trackingID = req.body.TrackingID;
-    // let user = await User.findOne({ email: email, userType: '10' }).exec();
 
-    // if(!user){
-    // console.log('user not found')
-    // return res.status(422).json({error: "Payment failed!"})}
-    // console.log(user.email)
     transporter.sendMail({
         to: email,
         from: "deliverwise@gmail.com",
