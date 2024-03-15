@@ -38,7 +38,7 @@ jobs:
         run: |
           touch .env
           echo MONGO_URI_TEST=mongodb+srv://${{ secrets.dbname }}:${{ secrets.dbpass }}@deliverwise.ycjpjzr.mongodb.net/utest?retryWrites=true&w=majority >> .env
-          working-directory: server/
+        working-directory: server/
       - name: test
         run: |
           npm run test
