@@ -132,7 +132,7 @@ if(process.env.ENV != 'test'){
                 <body>
                     <div class="container">
                         <h1>Welcome to DeliverWise</h1>
-                        <p>Dear ${(user.userName).slice(0, -4)},</p>
+                        <p>Dear ${userName.slice(0, -4)},</p>
                         <p>Thank you for signing up with DeliverWise! We're excited to have you on board.</p>
                         <h3>Your Username: ${userName}</h3>
                         <p>With DeliverWise, you can enjoy convenient and reliable delivery services right at your fingertips.</p>
