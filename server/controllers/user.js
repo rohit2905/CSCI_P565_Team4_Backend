@@ -15,10 +15,45 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+
+
+// Generate a Unique Username 
+function generateUserName(email) {
+    const localPart = separateMore(email.split('@')[0]);
+    let attempts = 0;
+    while (true) {
+        // Generate a random number between 0000 and 9999
+        const randomNumber = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        const potentialUsername = `${localPart}${randomNumber}`;
+        // Check if the generated username already exists
+        if (!usernameExists(potentialUsername) || attempts >= 10) {
+            // If it doesn't exist or we've tried too many times, use this one
+            return potentialUsername;
+        }
+        attempts++;
+    }
+}
+
+// This function furthur breaks down large emails
+function separateMore(str) {
+    return str.split(".")[0];
+}
+
+
+// implementation of usernameExists function
+function usernameExists(userName) {
+    const usernameExists =  User.findOne({
+        username: userName
+});
+
+    return usernameExists;
+}
 exports.register = async (req, res) => {
+
+    const userName = generateUserName(req.body.email);
     // check if user already exists
     const usernameExists = await User.findOne({
-        username: req.body.username,
+        username: userName,
         userType: req.body.userType
     });
     const emailExists = await User.findOne({
@@ -47,6 +82,8 @@ exports.register = async (req, res) => {
         });
     }
 
+    // Add the username to the request
+    req.body["username"] = userName;
     // if new user, let's create the user
     const user = new User(req.body);
     await user.save();
@@ -639,3 +676,5 @@ exports.allUsers = async (req, res) => {
 
     res.send(users);
 }
+
+

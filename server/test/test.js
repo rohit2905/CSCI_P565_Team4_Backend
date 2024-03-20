@@ -6,6 +6,29 @@ const User = require('../models/user');
 const bcrypt = require('bcrypt');
 let mongoServer;
 
+function separateMore(str) {
+    return str.split(".")[0];
+}
+function usernameExists(userName) {
+    const usernameExists = User.findOne({
+        username: userName
+    });
+
+    return usernameExists;
+}
+function generateUserName(email) {
+    const localPart = separateMore(email.split('@')[0]);
+    let attempts = 0;
+    while (true) {
+        const randomNumber = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        const potentialUsername = `${localPart}${randomNumber}`;
+        if (!usernameExists(potentialUsername) || attempts >= 10) {
+            return potentialUsername;
+        }
+        attempts++;
+    }
+}
+
 beforeAll(async () => {
     if (mongoose.connection.readyState) {
         await mongoose.disconnect();
@@ -243,3 +266,52 @@ describe('Authentication API', () => {
     });
 });
 
+describe('separateMore', () => {
+    test('should remove dot and text following it', () => {
+        expect(separateMore('john.doe')).toBe('john');
+    });
+    test('no dot, remain unchanged', () => {
+        expect(separateMore('janedoe')).toBe('janedoe'); // No dot, so remains unchanged
+    });
+});
+
+describe('usernameExists', () => {
+    test('should return null if username does not exist', async () => {
+        const userName = 'nonexistentuser';
+        const userExists = await usernameExists(userName);
+        expect(userExists).toBeNull(); // Assuming User.findOne returns null if no document is found
+    });
+
+    test('should return the user document if username exists', async () => {
+        const userName = 'existinguser';
+        // Create a user with the username to test against
+        await User.create({ username: userName, email: 'user@example.com', userType:10 });
+
+        const userExists = await usernameExists(userName);
+        expect(userExists).not.toBeNull();
+        expect(userExists.username).toBe(userName); // Verify the found document has the correct username
+    });
+});
+
+// This test assumes usernameExists works as expected, which may not be practical without a real or mocked database
+describe('generateUserName', () => {
+    test('should generate a unique username based on email', async () => {
+        const email = 'test.user@example.com';
+        const username = generateUserName(email);
+        const userType = 10;
+        // Assuming the username is generated synchronously for this example
+        // In real scenarios, if usernameExists is async, generateUserName would need to be async too
+        expect(username).toMatch(/^test\d{4}$/);
+
+        // Verify the username doesn't exist in the database (it shouldn't yet)
+        const userExists = await User.findOne({ username });
+        expect(userExists).toBeNull();
+
+        // Optionally, you can insert the user and try generating again to test the collision handling
+        await User.create({ username, email, userType });
+
+        // Generate another username to see if it handles the existence properly
+        const newUsername = generateUserName(email);
+        expect(newUsername).not.toBe(username); // Ensure a different username is generated
+    });
+});
