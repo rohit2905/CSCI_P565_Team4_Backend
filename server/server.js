@@ -49,8 +49,11 @@ const cors = require("cors");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const mongoURL = "mongodb+srv://root:root1234@deliverwise.ycjpjzr.mongodb.net/";
-
+const orderRoutes = require("./routes/Orders.routes");
 app.use(cors());
+
+//middleware to parse JSON file
+app.use(express.json());
 
 const courierRecommendations = {
   small: "USPS",
@@ -122,48 +125,7 @@ app.get("/services", (req, res) => {
     });
 });
 
-app.get("/api/recommend-courier", (req, res) => {
-  const { size, destination, speed, budget } = req.query;
-  if (!size || !destination || !speed || !budget) {
-    return res.status(400).json({ error: "Required parameters are missing." });
-  }
-
-  let recommendation;
-  if (
-    size < 30 &&
-    speed === "standard" &&
-    budget === "$" &&
-    destination === "domestic"
-  ) {
-    recommendation = {
-      courier: courierRecommendations["small"],
-      speed: "Standard",
-      cost: "$",
-      services: ["Tracking"],
-    };
-  } else if (
-    size < 60 &&
-    speed === "express" &&
-    budget === "$$" &&
-    destination === "international"
-  ) {
-    recommendation = {
-      courier: courierRecommendations["medium"],
-      speed: "Express",
-      cost: "$$",
-      services: ["Tracking", "Insurance"],
-    };
-  } else {
-    recommendation = {
-      courier: courierRecommendations["large"],
-      speed: "Express",
-      cost: "$$$",
-      services: ["Tracking", "Insurance", "Same-day Delivery"],
-    };
-  }
-
-  res.json({ recommendation });
-});
+app.use("/api/orders", orderRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

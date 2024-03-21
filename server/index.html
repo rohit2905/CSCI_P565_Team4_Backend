@@ -4,6 +4,48 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>User Search</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f0f0f0;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .order {
+        border-bottom: 1px solid #ccc;
+        padding: 10px 0;
+      }
+
+      .order:last-child {
+        border-bottom: none;
+      }
+
+      .order-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .order-details {
+        margin-top: 10px;
+        padding-left: 20px;
+      }
+    </style>
   </head>
   <body>
     <h1>User Search</h1>
@@ -40,6 +82,16 @@
       <button type="submit">Recommend</button>
     </form>
     <p id="recommendation"></p>
+
+    <div class="container">
+      <h1>Order Details</h1>
+      <form id="orderForm">
+        <label for="orderId">Enter Order ID:</label>
+        <input type="text" id="orderId" name="orderId" required />
+        <button type="submit">Search</button>
+      </form>
+      <div id="orderDetails"></div>
+    </div>
 
     <script>
       document
@@ -142,6 +194,46 @@
       document
         .getElementById("courierForm")
         .addEventListener("submit", recommendCourier);
+
+      async function fetchOrderDetails(event) {
+        event.preventDefault();
+
+        const orderId = document.getElementById("orderId").value;
+        try {
+          const response = await fetch(
+            `http://localhost:3000/api/orders/${orderId}`
+          );
+          const order = await response.json();
+
+          const orderDetailsContainer = document.getElementById("orderDetails");
+          orderDetailsContainer.innerHTML = `
+          <h2>Order Details</h2>
+          <p><strong>Order ID:</strong> ${order.TrackingId}</p>
+          <p><strong>From Address:</strong> ${order.Address_f}</p>
+          <p><strong>To Address:</strong> ${order.Address_t}</p>
+          <p><strong>Cost:</strong> $${order.Cost.toFixed(2)}</p>
+          <p><strong>Carrier:</strong> ${order.Carrier}</p>
+          <p><strong>Size:</strong> ${order.Size}</p>
+          <p><strong>Weight:</strong> ${order.Weight}</p>
+          <p><strong>Priority Status:</strong> ${order.PriorityStatus}</p>
+          <p><strong>Payment Status:</strong> ${order.PaymentStatus}</p>
+          <p><strong>Customer:</strong> ${order.Customer}</p>
+          <p><strong>Location:</strong> ${order.Location}</p>
+          <p><strong>Order Status:</strong> ${order.OrderStatus}</p>
+          <p><strong>Drive:</strong> ${order.Drive}</p>
+        `;
+        } catch (error) {
+          console.error("Error:", error);
+          document.getElementById("orderDetails").innerHTML =
+            "Failed to fetch order details.";
+        }
+      }
+
+      document
+        .getElementById("orderForm")
+        .addEventListener("submit", fetchOrderDetails);
+
+      fetchOrders();
     </script>
   </body>
 </html>
