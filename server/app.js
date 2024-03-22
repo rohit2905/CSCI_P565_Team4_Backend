@@ -8,6 +8,11 @@ require('dotenv').config();
 const cookieParser = require("cookie-parser");
 const expressValidator = require("express-validator");
 const path = require('path');
+
+const passport = require("passport");
+const passportSetup = require("./passport");
+const authRoute = require("./routes/auth");
+
 // server
 const app = express();
 
@@ -31,6 +36,7 @@ mongoose.connect(process.env.ENV === 'test' ?process.env.MONGO_URI_TEST:process.
 app.use(morgan("dev"));
 app.use(cors({origin: true, credentials: true}));
 app.use(json());
+app.use("/auth", authRoute);
 app.use(urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(expressValidator());
@@ -47,6 +53,9 @@ app.use("/", messageRoutes);
 
 const serviceRoutes = require("./routes/serviceRoutes");
 app.use("/", serviceRoutes);
+
+const authRoutes = require("./routes/auth");
+app.use("/", authRoutes)
 
 
 module.exports = app;
