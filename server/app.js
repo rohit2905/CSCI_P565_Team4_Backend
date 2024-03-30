@@ -9,6 +9,10 @@ const cookieParser = require("cookie-parser");
 const expressValidator = require("express-validator");
 const path = require('path');
 
+const passport = require("passport");
+const passportSetup = require("./passport");
+const authRoute = require("./routes/auth");
+
 // server
 const app = express();
 
@@ -23,7 +27,7 @@ app.get('/', (req, res) => {
 });
 
 // db
-mongoose.connect(process.env.MONGO_URI,{
+mongoose.connect(process.env.ENV === 'test' ?process.env.MONGO_URI_TEST:process.env.MONGO_URI,{
     useNewUrlParser: true,
     useUnifiedTopology: true,
 }).then(() => console.log("Database Connectecd...")).catch((err) => console.log("Database Connection Error", err));
@@ -32,6 +36,7 @@ mongoose.connect(process.env.MONGO_URI,{
 app.use(morgan("dev"));
 app.use(cors({origin: true, credentials: true}));
 app.use(json());
+app.use("/auth", authRoute);
 app.use(urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(expressValidator());
@@ -49,22 +54,8 @@ app.use("/", messageRoutes);
 const serviceRoutes = require("./routes/serviceRoutes");
 app.use("/", serviceRoutes);
 
-const port = process.env.PORT || 8080;
-const server = app.listen(port, () => console.log(`Backend Server is running on port ${port}`));
+const authRoutes = require("./routes/auth");
+app.use("/", authRoutes)
 
 
-// for chat app
-const io = require("socket.io")(server, {
-    pingTimeout: 60000,
-    cors: {
-        origin: process.env.DEPLOY_URL,
-    },
-  });
-
-/*
-TODO: Chats socket connections: kirthivasan pending
-*/
-
-/*
-TODO: Searching and filtering: kirthivasan and shalini
-*/
+module.exports = app;

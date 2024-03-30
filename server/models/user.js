@@ -32,6 +32,7 @@ const userSchema = new mongoose.Schema({
     },
     resetToken: String,
     expireToken: Date,
+    passReset: { type: Boolean, default: false },
     
     otp : {
         type : String,
