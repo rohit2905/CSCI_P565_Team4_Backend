@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 // import controllers
-const {register, login, logout, getLoggedInUser, resetpassword, newpassword, order,orderemail,readusers,readorders,orderupdate,orderstatus,adduseraccess,readuserorders,allUsers} = require("../controllers/user");
+const { register, login, logout, getLoggedInUser, resetpassword, newpassword, order, orderemail, readusers, readorders, orderupdate, orderstatus, adduseraccess, readuserorders, allUsers, addservice, removeservice, updateservice } = require("../controllers/user");
 
 
 // import middlewares
@@ -38,5 +38,11 @@ router.get("/orderstatus", orderstatus);
 router.post("/adduseraccess", adduseraccess);
 
 router.get('/alluser',verifyToken,userById, allUsers );
+
+router.post('/addservice', addservice);
+
+router.patch('/updateservice/:id', updateservice);
+
+router.delete('/removeservice/:id', removeservice);
 
 module.exports = router;
