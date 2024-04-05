@@ -1,5 +1,6 @@
 const User = require('../models/user');
 const Order = require('../models/order');
+const Service = require('../models/services')
 const Useraccess = require('../models/useraccess');
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
@@ -280,6 +281,61 @@ exports.logout = (req, res) => {
     });
 };
 
+// add a new service
+exports.addservice = async (req, res) => {
+    const service = new Service(req.body)
+    try {
+        await service.save()
+        res.status(201).json({
+            status: 'Success',
+            data: {
+                service
+            }
+        })
+    } catch (err) {
+        res.status(500).json({
+            status: 'Failed',
+            message: err
+        })
+    }
+};
+
+// delete a service
+exports.removeservice = async (req, res) => {
+    await Service.findByIdAndDelete(req.params.id)
+
+    try {
+        res.status(204).json({
+            status: 'Success',
+            data: {
+                "message": "Service Deleted"
+            }
+        })
+    } catch (err) {
+        res.status(500).json({
+            status: 'Failed',
+            message: err
+        })
+    }
+
+};
+
+exports.updateservice = async (req, res) => {
+    const updatedService = await Service.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+        runValidators: true
+    })
+    try {
+        res.status(200).json({
+            status: 'Success',
+            data: {
+                updatedService
+            }
+        })
+    } catch (err) {
+        console.log(err)
+    }
+}
 
 exports.getLoggedInUser = (req, res) => {
     const { userType, username, _id, email } = req.user;
