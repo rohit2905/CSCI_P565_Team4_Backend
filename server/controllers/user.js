@@ -43,9 +43,9 @@ function separateMore(str) {
 
 // implementation of usernameExists function
 function usernameExists(userName) {
-    const usernameExists =  User.findOne({
+    const usernameExists = User.findOne({
         username: userName
-});
+    });
 
     return usernameExists;
 }
@@ -89,12 +89,12 @@ exports.register = async (req, res) => {
     const user = new User(req.body);
     await user.save();
 
-if(process.env.ENV != 'test'){
-    transporter.sendMail({
-        to: user.email,
-        from: "deliverwise@gmail.com",
-        subject: "signup successful",
-        html: `<!DOCTYPE html>
+    if (process.env.ENV != 'test') {
+        transporter.sendMail({
+            to: user.email,
+            from: "deliverwise@gmail.com",
+            subject: "signup successful",
+            html: `<!DOCTYPE html>
                 <html lang="en">
                 <head>
                     <meta charset="UTF-8">
@@ -144,8 +144,8 @@ if(process.env.ENV != 'test'){
                 </body>
                 </html>
                 `
-    });
-}
+        });
+    }
     res.status(201).json({
         message: "Sign-up Successful",
     });
@@ -163,13 +163,13 @@ exports.login = async (req, res) => {
                     error: "Invalid Credentials",
                 });
             }
-            if (otp != user.otp){
+            if (otp != user.otp) {
                 return res.status(401).json({
                     error: "Invalid OTP",
                 });
             }
 
-        
+
             // is user is found, we authenticate method from model
             if (!user.authenticate(password)) {
                 return res.status(401).json({
@@ -185,7 +185,7 @@ exports.login = async (req, res) => {
             // persist the token as 'jwt' in cookie with an expiry date
             res.cookie("jwt", token, { expire: new Date() + 9999, httpOnly: true });
             if (user.passReset) {
-                
+
                 User.findOneAndUpdate({ userType: req.body.userType, email: req.body.email },
                     { passReset: false },
                     { new: true },
@@ -197,8 +197,15 @@ exports.login = async (req, res) => {
                     }
                 );
             }
+            // Update is_online flag
+            User.findOneAndUpdate({ userType: req.body.userType, email: req.body.email }, { is_online: true }, (err, updatedUser) => {
+                if (err) {
+                    console.error("Failed to update is_online flag");
+                    // Handle error here
+                }
+            });
 
-            
+
 
             // return the response with the user
             const { email, userType, username } = user;
@@ -216,7 +223,7 @@ exports.login = async (req, res) => {
     // to send otp if it does not exist
     else {
         const { userType, email } = req.body;
-       
+
         var dw_otp = Math.random();
         dw_otp = dw_otp * 1000000;
         dw_otp = parseInt(dw_otp);
@@ -310,7 +317,23 @@ exports.login = async (req, res) => {
     }
 };
 
+async function updateFlag(id) {
+    try {
+        const user = await User.findOne({ username: id });
+        if (!user) {
+            console.log("User not found");
+        }
+
+        user.is_online = false;
+        await user.save();
+    } catch (error) {
+        console.error("Error logging out:", error);
+    }
+}
+
+
 exports.logout = (req, res) => {
+    updateFlag(req.query.id)
     // clear the cookie
     res.clearCookie("jwt");
 
