@@ -57,5 +57,7 @@ app.use("/", serviceRoutes);
 const authRoutes = require("./routes/auth");
 app.use("/", authRoutes)
 
+const reviewRoutes = require("./routes/reviewRoutes");
+app.use("/", reviewRoutes)
 
 module.exports = app;
