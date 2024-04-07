@@ -528,6 +528,68 @@ exports.orderstatus = async (req, res) => {
         });
     }
 };
+exports.order_details_for_dashboard = async (req, res) => {
+    const User = req.query.email;
+    console.log(User);
+    try {
+        const orders = await Order.find({ Customer: User });
+        if (!orders || orders.length === 0) {
+            return res.status(400).json({
+                error: "No previous orders",
+            });
+        }
+
+        const orderDetails = orders.map(order => ({
+            Carrier: order.Carrier,
+            OrderStatus: order.OrderStatus,
+            Address_f: order.Address_f,
+            Address_t: order.Address_t,
+            Location: order.Location,
+            weight: order.Weight,
+            cost: order.Cost
+        }));
+
+        res.status(200).json({
+            message: "Order details fetched",
+            orders: orderDetails
+        });
+    } catch (error) {
+        res.status(500).json({
+            error: "Internal Server Error",
+        });
+    }
+};
+exports.order_details_for_dashboard_Admin = async (req, res) => {
+    const User = req.query.email;
+    console.log(User);
+    try {
+        const orders = await Order.find({ });
+        if (!orders || orders.length === 0) {
+            return res.status(400).json({
+                error: "No previous orders",
+            });
+        }
+
+        const orderDetails = orders.map(order => ({
+            Carrier: order.Carrier,
+            OrderStatus: order.OrderStatus,
+            Address_f: order.Address_f,
+            Address_t: order.Address_t,
+            Location: order.Location,
+            weight: order.Weight,
+            cost: order.Cost
+        }));
+
+        res.status(200).json({
+            message: "Order details fetched",
+            orders: orderDetails
+        });
+    } catch (error) {
+        res.status(500).json({
+            error: "Internal Server Error",
+        });
+    }
+};
 
 exports.adduseraccess = async (req, res) => {
     // check if user already exists

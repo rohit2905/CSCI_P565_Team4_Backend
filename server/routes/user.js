@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 // import controllers
-const {register, login, logout, getLoggedInUser, resetpassword, newpassword, order,orderemail,readusers,readorders,orderupdate,orderstatus,adduseraccess,readuserorders,allUsers} = require("../controllers/user");
+const {register, login, logout, getLoggedInUser, resetpassword, newpassword, order,orderemail,readusers,readorders,orderupdate,orderstatus,adduseraccess,readuserorders,allUsers, order_details_for_dashboard, order_details_for_dashboard_Admin} = require("../controllers/user");
 
 
 // import middlewares
@@ -28,7 +28,8 @@ router.post("/orderemail", orderemail);
 router.get("/users", readusers);
 
 router.get("/orders", readorders);
-
+router.get("/ordersDashboard", order_details_for_dashboard);
+router.get("/ordersDashboardAdmin", order_details_for_dashboard_Admin);
 router.get("/userorders", readuserorders);
 
 router.post("/orderupdate", orderupdate);
