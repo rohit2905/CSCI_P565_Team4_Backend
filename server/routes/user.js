@@ -13,7 +13,7 @@ const {verifyToken} = require('../middlewares/auth');
 // api routes
 router.post("/register",userRegisterValidator, register);
 router.post("/login", login);
-router.get("/logout", logout);
+router.get("/logout/:id", logout);
 
 router.get('/user', verifyToken, userById, getLoggedInUser);
 
