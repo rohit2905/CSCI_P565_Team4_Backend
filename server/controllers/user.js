@@ -200,12 +200,12 @@ exports.login = async (req, res) => {
                 );
             }
             // Update is_online flag
-            User.findOneAndUpdate({ userType: req.body.userType, email: req.body.email }, { is_online: true }, (err, updatedUser) => {
-                if (err) {
-                    console.error("Failed to update is_online flag");
-                    // Handle error here
-                }
-            });
+            // User.findOneAndUpdate({ userType: req.body.userType, email: req.body.email }, { is_online: true }, (err, updatedUser) => {
+            //     if (err) {
+            //         console.error("Failed to update is_online flag");
+            //         // Handle error here
+            //     }
+            // });
 
 
 
