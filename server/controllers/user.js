@@ -185,7 +185,8 @@ exports.login = async (req, res) => {
             });
 
             // persist the token as 'jwt' in cookie with an expiry date
-            res.cookie("jwt", token, { expire: new Date() + 9999, httpOnly: true });
+            const expiryDate = new Date(Date.now() + 24 * 60 * 60 * 1000); 
+            res.cookie("jwt", token, { expires: expiryDate, httpOnly: true });
             if (user.passReset) {
 
                 User.findOneAndUpdate({ userType: req.body.userType, email: req.body.email },
@@ -200,12 +201,12 @@ exports.login = async (req, res) => {
                 );
             }
             // Update is_online flag
-            // User.findOneAndUpdate({ userType: req.body.userType, email: req.body.email }, { is_online: true }, (err, updatedUser) => {
-            //     if (err) {
-            //         console.error("Failed to update is_online flag");
-            //         // Handle error here
-            //     }
-            // });
+            User.findOneAndUpdate({ userType: req.body.userType, email: req.body.email }, { is_online: true }, (err, updatedUser) => {
+                if (err) {
+                    console.error("Failed to update is_online flag");
+                    // Handle error here
+                }
+            });
 
 
 
