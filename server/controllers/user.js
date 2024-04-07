@@ -321,7 +321,7 @@ exports.login = async (req, res) => {
 
 async function updateFlag(id) {
     try {
-        const user = await User.findOne({ username: id });
+        const user = await User.findOne({ _id: id });
         if (!user) {
             console.log("User not found");
         } else {
