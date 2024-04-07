@@ -334,12 +334,13 @@ async function updateFlag(id) {
 
 exports.logout = (req, res) => {
     updateFlag(req.query.id)
-    // clear the cookie
-    res.clearCookie("jwt");
-
-    return res.json({
-        message: "Logout Successful"
-    });
+        .then(() => {
+            // clear the cookie
+            res.clearCookie("jwt");
+            return res.json({
+                message: "Logout Successful"
+            });
+        })
 };
 
 // add a new service
