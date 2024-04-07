@@ -335,6 +335,7 @@ async function updateFlag(id) {
 
 
 exports.logout = (req, res) => {
+    console.log(req);
     updateFlag(req.query.id)
         .then(() => {
             // clear the cookie
