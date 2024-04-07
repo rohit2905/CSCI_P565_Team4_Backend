@@ -322,10 +322,10 @@ async function updateFlag(id) {
         const user = await User.findOne({ username: id });
         if (!user) {
             console.log("User not found");
-        }
-
+        } else {
         user.is_online = false;
         await user.save();
+        }
     } catch (error) {
         console.error("Error logging out:", error);
     }
