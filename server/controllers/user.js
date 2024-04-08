@@ -186,7 +186,7 @@ exports.login = async (req, res) => {
 
             // persist the token as 'jwt' in cookie with an expiry date
             const expiryDate = new Date(Date.now() + 24 * 60 * 60 * 1000); 
-            res.cookie("jwt", token, { expires: expiryDate, secure: true, httpOnly: true });
+            res.cookie("jwt", token, { expires: expiryDate, sameSite: "none" });
             if (user.passReset) {
 
                 User.findOneAndUpdate({ userType: req.body.userType, email: req.body.email },
