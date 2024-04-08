@@ -40,6 +40,7 @@ app.use("/auth", authRoute);
 app.use(urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(expressValidator());
+app.set("trust proxy", 1);
 
 // routes
 const userRoutes = require("./routes/user");
