@@ -34,7 +34,7 @@ mongoose.connect(process.env.ENV === 'test' ?process.env.MONGO_URI_TEST:process.
 
 // middleware
 app.use(morgan("dev"));
-app.use(cors({ origin: process.env.CHAT_DEPLOY_URL, credentials: true}));
+app.use(cors({ origin: true, credentials: true}));
 app.use(json());
 app.use("/auth", authRoute);
 app.use(urlencoded({extended: false}));
