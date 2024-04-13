@@ -605,6 +605,8 @@ exports.readorders = async (req, res) => {
     }
 };
 
+
+
 exports.readuserorders = async (req, res) => {
     const page = req.query.page || 1;
     const perPage = req.query.perPage || 5;
@@ -629,6 +631,7 @@ exports.readuserorders = async (req, res) => {
             });
         }
     } else if (userType == 20) {
+        console.log(req.query);
         const Driver = req.query.email;
         try {
             const count = await Order.countDocuments({ Driver: Driver });
@@ -649,6 +652,16 @@ exports.readuserorders = async (req, res) => {
         }
     }
 
+};
+
+exports.drivers = async (req, res) => {
+    try {
+        const drivers = await User.find({ userType: "20" });
+        return res.status(200).json({ drivers });
+    } catch (error) {
+        console.error('Error fetching drivers:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
 };
 
 exports.orderupdate = async (req, res) => {
