@@ -340,6 +340,7 @@ exports.logout = (req, res) => {
         .then(() => {
             // clear the cookie
             res.clearCookie("jwt");
+            res.clearCookie("jwt");
             return res.json({
                 message: "Logout Successful"
             });

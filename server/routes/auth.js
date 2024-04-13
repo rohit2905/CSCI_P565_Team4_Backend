@@ -67,6 +67,14 @@ router.get("/google/callback",
 
 router.get("/google", passport.authenticate("google", ["profile", "email"]));
 
+router.get("/logout", (req, res) => {
+    console.log("gwgege");
+    res.clearCookie("jwt");
+    req.logout();
+    res.redirect(process.env.CLIENT_URL);
+});
+
+
 // Facebook callback route
 router.get("/facebook/callback",
     passport.authenticate("facebook", { failureRedirect: "/login/failed" }),
