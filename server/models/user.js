@@ -17,6 +17,12 @@ const userSchema = new mongoose.Schema({
         unique: false,
         lowercase: true,
     },
+    facebookId: {
+        type: String,
+        trim: true,
+        unique: false,
+        lowercase: true,
+    },
     
     username: {
         type: String,

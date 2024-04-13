@@ -27,7 +27,7 @@ router.get("/login/failed", (req, res) => {
 });
 
 router.get("/google/callback", 
-    passport.authenticate("google", { failureRedirect: "/login/failed" }),
+    passport.authenticate("google", { session:false, failureRedirect: "/login/failed" }),
     async (req, res) => {
         try {
             console.log(req);
@@ -66,6 +66,42 @@ router.get("/google/callback",
 );
 
 router.get("/google", passport.authenticate("google", ["profile", "email"]));
+
+// Facebook callback route
+router.get("/facebook/callback",
+    passport.authenticate("facebook", { failureRedirect: "/login/failed" }),
+    async (req, res) => {
+        try {
+            let user = await User.findOne({ facebookId: req.user.id });
+            if (!user) {
+                user = new User({
+                    facebookId: req.user.id,
+                    email: req.user.emails[0].value,
+                    username: req.user.givenname,
+                    userType: "10",
+                    is_online: true,
+                });
+                await user.save();
+            } else {
+                user.is_online = true;
+                await user.save();
+            }
+            const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: "24h" });
+            res.cookie("jwt", token, { maxAge: 24 * 60 * 60 * 1000, httpOnly: true, secure: true, sameSite: "None" });
+            res.redirect(process.env.CLIENT_URL + "/Customer");
+        } catch (error) {
+            console.error("Error in Facebook callback:", error);
+            res.status(500).json({
+                error: true,
+                message: "Internal Server Error",
+            });
+        }
+    }
+);
+
+// Facebook authentication route
+router.get("/facebook", passport.authenticate("facebook", ["email"]));
+
 
 router.get("/logout", (req, res) => {
     req.logout();
