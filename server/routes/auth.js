@@ -27,7 +27,7 @@ router.get("/login/failed", (req, res) => {
 });
 
 router.get("/google/callback", 
-    passport.authenticate("google", { session:false, failureRedirect: "/login/failed" }),
+    passport.authenticate("google", { failureRedirect: "/login/failed" }),
     async (req, res) => {
         try {
             console.log(req);

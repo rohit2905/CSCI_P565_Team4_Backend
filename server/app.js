@@ -10,6 +10,7 @@ const expressValidator = require("express-validator");
 const path = require('path');
 
 const passport = require("passport");
+const session = require('express-session');
 const passportSetup = require("./passport");
 const authRoute = require("./routes/auth");
 
@@ -25,6 +26,17 @@ Reason: free verson of Render goes down after sometime of inactivity
 app.get('/', (req, res) => {
     res.send('Backend Service for DeliverWise Running');
 });
+
+// Add express-session middleware
+app.use(session({
+    secret: process.env.JWT_SECRET,
+    resave: false,
+    saveUninitialized: false,
+}));
+
+// Initialize Passport and restore authentication state if available
+app.use(passport.initialize());
+app.use(passport.session());
 
 // db
 mongoose.connect(process.env.ENV === 'test' ?process.env.MONGO_URI_TEST:process.env.MONGO_URI,{
