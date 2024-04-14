@@ -78,8 +78,13 @@ router.get("/logout", (req, res) => {
                 message: "Internal Server Error",
             });
         }
-        // Clear the JWT cookie
-        res.clearCookie("jwt");
+        res.clearCookie("jwt", {
+            // Set the same options used when setting the cookie
+            maxAge: 0, // Set the maxAge to 0 to expire the cookie immediately
+            httpOnly: true,
+            secure: true,
+            sameSite: "None"
+        });
         // Redirect or send response after logout
         res.redirect(process.env.CLIENT_URL); 
     });

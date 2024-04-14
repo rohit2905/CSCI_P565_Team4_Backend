@@ -339,8 +339,13 @@ exports.logout = (req, res) => {
     updateFlag(req.params.id)
         .then(() => {
             // clear the cookie
-            res.clearCookie("jwt");
-            res.clearCookie("jwt");
+            res.clearCookie("jwt", {
+                // Set the same options used when setting the cookie
+                maxAge: 0, // Set the maxAge to 0 to expire the cookie immediately
+                httpOnly: true,
+                secure: true,
+                sameSite: "None"
+            });
             return res.json({
                 message: "Logout Successful"
             });
