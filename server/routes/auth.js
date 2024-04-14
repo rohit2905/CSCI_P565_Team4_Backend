@@ -30,7 +30,6 @@ router.get("/google/callback",
     passport.authenticate("google", { failureRedirect: "/login/failed" }),
     async (req, res) => {
         try {
-            console.log(req);
             // Check if user already exists in your database
             let user = await User.findOne({ googleId: req.user.id });
             if (!user) {
@@ -96,12 +95,13 @@ router.get("/facebook/callback",
     passport.authenticate("facebook", { failureRedirect: "/login/failed" }),
     async (req, res) => {
         try {
+            console.log(req.user);
             let user = await User.findOne({ facebookId: req.user.id });
             if (!user) {
                 user = new User({
                     facebookId: req.user.id,
                     email: req.user.emails[0].value,
-                    username: req.user.givenname,
+                    username: req.user.displayName,
                     userType: "10",
                     is_online: true,
                 });
@@ -124,6 +124,6 @@ router.get("/facebook/callback",
 );
 
 // Facebook authentication route
-router.get("/facebook", passport.authenticate("facebook", ["email"]));
+router.get("/facebook", passport.authenticate("facebook", ["profile", "email"]));
 
 module.exports = router;
