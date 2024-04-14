@@ -68,10 +68,21 @@ router.get("/google/callback",
 router.get("/google", passport.authenticate("google", ["profile", "email"]));
 
 router.get("/logout", (req, res) => {
-    console.log("gwgege");
-    res.clearCookie("jwt");
-    req.logout();
-    res.redirect(process.env.CLIENT_URL);
+    // Destroy the session
+    req.session.destroy((err) => {
+        if (err) {
+            console.error("Error destroying session:", err);
+            // Handle the error
+            return res.status(500).json({
+                error: true,
+                message: "Internal Server Error",
+            });
+        }
+        // Clear the JWT cookie
+        res.clearCookie("jwt");
+        // Redirect or send response after logout
+        res.redirect(process.env.CLIENT_URL); 
+    });
 });
 
 
