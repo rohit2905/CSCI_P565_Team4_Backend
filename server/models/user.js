@@ -31,6 +31,18 @@ const userSchema = new mongoose.Schema({
         unique: false,
         lowercase: true,
     },
+    securityQuestion: {
+        type: String,
+        trim: true,
+        unique: false,
+        lowercase: true,
+    },
+    securityAnswer: {
+        type: String,
+        trim: true,
+        unique: false,
+        lowercase: true,
+    },
     email: {
         type: String,
         required: true,

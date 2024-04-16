@@ -151,6 +151,62 @@ exports.register = async (req, res) => {
     });
 };
 
+exports.verifyEmail = async (req, res) => {
+    const { email, userType } = req.query;
+
+    try {
+        // Check if the email exists in the database
+        const user = await User.findOne({ email, userType });
+
+        // If the user is found, return true (email is verified)
+        // If the user is not found, return false (email is not verified)
+        res.json({ isVerified: !!user });
+    } catch (error) {
+        console.error("Error verifying email:", error);
+        res.status(500).json({ error: "Internal server error." });
+    }
+}
+
+exports.securityQuestion = async (req, res) => {
+    const { email } = req.query;
+
+    try {
+        // Find the user by email address in the database
+        const user = await User.findOne({ email });
+
+        // If the user is not found or does not have a security question set, return an error
+        if (!user || !user.securityQuestion) {
+            return res.status(404).json({ error: "Security question not found." });
+        }
+
+        // If the user is found and has a security question, return the question
+        res.json({ securityQuestion: user.securityQuestion });
+    } catch (error) {
+        console.error("Error retrieving security question:", error);
+        res.status(500).json({ error: "Internal server error." });
+    }
+}
+
+exports.validateSecurityAnswers = async (req, res) => {
+    const { email, securityAnswer } = req.body;
+
+    try {
+        // Find the user by email address in the database
+        const user = await User.findOne({ email });
+
+        // If the user is not found or the answer does not match, return false
+        if (!user || user.securityAnswer !== securityAnswer) {
+            return res.json({ isValid: false });
+        }
+
+        // If the answer matches, return true
+        res.json({ isValid: true });
+    } catch (error) {
+        console.error("Error validating security answer:", error);
+        res.status(500).json({ error: "Internal server error." });
+    }
+}
+
 exports.login = async (req, res) => {
     // find the user by email
     const { userType, email, password, otp } = req.body;
