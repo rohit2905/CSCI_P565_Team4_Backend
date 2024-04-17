@@ -581,7 +581,43 @@ exports.newpassword = async (req, res) => {
                 to: user.email,
                 from: "deliverwise@gmail.com",
                 subject: "Password reset successful",
-                html: "<h1>Your password has been successfully reset</h1>"
+                html: `
+                        <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Password Reset Confirmation</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #f4f4f4;
+                            margin: 0;
+                            padding: 0;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            height: 100vh;
+                        }
+                        .container {
+                            text-align: center;
+                            background-color: #fff;
+                            border-radius: 8px;
+                            padding: 20px;
+                            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                        }
+                        h1 {
+                            color: #007bff;
+                            margin-bottom: 20px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>Your password has been successfully reset</h1>
+                    </div>
+                </body>
+                </html>`
             }).catch(err => {
                 console.log(err)
             })
@@ -610,9 +646,43 @@ exports.orderemail = async (req, res) => {
         to: email,
         from: "deliverwise@gmail.com",
         subject: "DeliverWise Payment Invoice",
-        html: `<h2>Thank you for the recent payment that you made for the amount $ ${cost}.
-            This is a confirmation that the amount has been received successfully.
-            Your tracking ID is ${trackingID} .</h2>`
+        html: `<!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Payment Confirmation</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #f4f4f4;
+                            margin: 0;
+                            padding: 0;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            height: 100vh;
+                        }
+                        .container {
+                            text-align: center;
+                            background-color: #fff;
+                            border-radius: 8px;
+                            padding: 20px;
+                            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                        }
+                        h2 {
+                            color: #007bff;
+                            margin-bottom: 20px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h2>Thank you for the recent payment that you made for the amount $${cost}. </h2>
+                        <h3>This is a confirmation that the amount has been received successfully. Your tracking ID is ${trackingID}.</h3>
+                    </div>
+                </body>
+                </html>`
     }).catch(err => {
         console.log(err)
     })
