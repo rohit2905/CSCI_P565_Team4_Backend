@@ -1,5 +1,6 @@
 const User = require('../models/user');
 const Order = require('../models/order');
+const Service = require('../models/services')
 const Useraccess = require('../models/useraccess');
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
@@ -15,22 +16,56 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+
+
+// Generate a Unique Username 
+function generateUserName(email) {
+    const localPart = separateMore(email.split('@')[0]);
+    let attempts = 0;
+    while (true) {
+        // Generate a random number between 0000 and 9999
+        const randomNumber = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        const potentialUsername = `${localPart}${randomNumber}`;
+        // Check if the generated username already exists
+        if (!usernameExists(potentialUsername) || attempts >= 10) {
+            // If it doesn't exist or we've tried too many times, use this one
+            return potentialUsername;
+        }
+        attempts++;
+    }
+}
+
+// This function furthur breaks down large emails
+function separateMore(str) {
+    return str.split(".")[0];
+}
+
+
+// implementation of usernameExists function
+function usernameExists(userName) {
+    const usernameExists = User.findOne({
+        username: userName
+    });
+
+    return usernameExists;
+}
 exports.register = async (req, res) => {
+
+    const userName = generateUserName(req.body.email);
     // check if user already exists
     const usernameExists = await User.findOne({
-        username: req.body.username,
+        username: userName,
         userType: req.body.userType
     });
     const emailExists = await User.findOne({
         email: req.body.email,
         userType: req.body.userType
     });
-    console.log(req.body);
+
     const useraccessExists = await Useraccess.findOne({
         userType: req.body.userType,
         email: req.body.email,
     });
-    console.log(useraccessExists);
     if (!(useraccessExists) == null) {
         return res.status(403).json({
             error: "User doesn't have access to create required account",
@@ -48,15 +83,18 @@ exports.register = async (req, res) => {
         });
     }
 
+    // Add the username to the request
+    req.body["username"] = userName;
     // if new user, let's create the user
     const user = new User(req.body);
     await user.save();
 
-    transporter.sendMail({
-        to: user.email,
-        from: "deliverwise@gmail.com",
-        subject: "signup successful",
-        html: `<!DOCTYPE html>
+    if (process.env.ENV != 'test') {
+        transporter.sendMail({
+            to: user.email,
+            from: "deliverwise@gmail.com",
+            subject: "signup successful",
+            html: `<!DOCTYPE html>
                 <html lang="en">
                 <head>
                     <meta charset="UTF-8">
@@ -95,8 +133,9 @@ exports.register = async (req, res) => {
                 <body>
                     <div class="container">
                         <h1>Welcome to DeliverWise</h1>
-                        <p>Dear ${user.username},</p>
+                        <p>Dear ${userName.slice(0, -4)},</p>
                         <p>Thank you for signing up with DeliverWise! We're excited to have you on board.</p>
+                        <h3>Your Username: ${userName}</h3>
                         <p>With DeliverWise, you can enjoy convenient and reliable delivery services right at your fingertips.</p>
                         <p>If you have any questions or need assistance, feel free to reach out to our support team at deliverwise@gmail.com.</p>
                         <p>Best regards,</p>
@@ -105,11 +144,68 @@ exports.register = async (req, res) => {
                 </body>
                 </html>
                 `
-    });
+        });
+    }
     res.status(201).json({
         message: "Sign-up Successful",
     });
 };
+
+exports.verifyEmail = async (req, res) => {
+    const { email, userType } = req.query;
+
+    try {
+        // Check if the email exists in the database
+        const user = await User.findOne({ email, userType });
+
+        // If the user is found, return true (email is verified)
+        // If the user is not found, return false (email is not verified)
+        res.json({ isVerified: !!user });
+    } catch (error) {
+        console.error("Error verifying email:", error);
+        res.status(500).json({ error: "Internal server error." });
+    }
+}
+
+exports.securityQuestion = async (req, res) => {
+    const { email } = req.query;
+
+    try {
+        // Find the user by email address in the database
+        const user = await User.findOne({ email });
+
+        // If the user is not found or does not have a security question set, return an error
+        if (!user || !user.securityQuestion) {
+            return res.status(404).json({ error: "Security question not found." });
+        }
+
+        // If the user is found and has a security question, return the question
+        res.json({ securityQuestion: user.securityQuestion });
+    } catch (error) {
+        console.error("Error retrieving security question:", error);
+        res.status(500).json({ error: "Internal server error." });
+    }
+}
+
+exports.validateSecurityAnswers = async (req, res) => {
+    const { email, securityAnswer } = req.body;
+
+    try {
+        // Find the user by email address in the database
+        const user = await User.findOne({ email });
+
+        // If the user is not found or the answer does not match, return false
+        if (!user || user.securityAnswer !== securityAnswer) {
+            return res.json({ isValid: false });
+        }
+
+        // If the answer matches, return true
+        res.json({ isValid: true });
+    } catch (error) {
+        console.error("Error validating security answer:", error);
+        res.status(500).json({ error: "Internal server error." });
+    }
+}
 
 exports.login = async (req, res) => {
     // find the user by email
@@ -123,6 +219,12 @@ exports.login = async (req, res) => {
                     error: "Invalid Credentials",
                 });
             }
+            if (otp != user.otp) {
+                return res.status(401).json({
+                    error: "Invalid OTP",
+                });
+            }
+
 
             // is user is found, we authenticate method from model
             if (!user.authenticate(password)) {
@@ -132,16 +234,40 @@ exports.login = async (req, res) => {
             }
 
             // generate a token with user id and  jwt secret
+            console.log("after login: ", user);
+            console.log("jwT: ",process.env.JWT_SECRET);
             const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
                 expiresIn: "24h",
             });
 
             // persist the token as 'jwt' in cookie with an expiry date
-            res.cookie("jwt", token, { expire: new Date() + 9999, httpOnly: true });
+            res.cookie("jwt", token, { maxAge: 24 * 60 * 60 * 1000, httpOnly: true, secure: true, sameSite: "None" });
+            if (user.passReset) {
+
+                User.findOneAndUpdate({ userType: req.body.userType, email: req.body.email },
+                    { passReset: false },
+                    { new: true },
+                    (err, updatedUser) => {
+                        if (err || !updatedUser) {
+                            console.error("Failed to update passReset field");
+                            // Handle error here
+                        }
+                    }
+                );
+            }
+            // Update is_online flag
+            User.findOneAndUpdate({ userType: req.body.userType, email: req.body.email }, { is_online: true }, (err, updatedUser) => {
+                if (err) {
+                    console.error("Failed to update is_online flag");
+                    // Handle error here
+                }
+            });
+
+
 
             // return the response with the user
             const { email, userType, username } = user;
-            return res.status(401).json({
+            return res.status(200).json({
                 message: "You have successfully logged in",
                 email,
                 username,
@@ -156,11 +282,9 @@ exports.login = async (req, res) => {
     else {
         const { userType, email } = req.body;
 
-       
         var dw_otp = Math.random();
         dw_otp = dw_otp * 1000000;
         dw_otp = parseInt(dw_otp);
-        console.log(dw_otp);
 
         // create transporter to send email
         const transporter = nodemailer.createTransport({
@@ -177,6 +301,11 @@ exports.login = async (req, res) => {
                     return res.status(422).json({
                         error: "User doesn't exist with that email/user type"
                     })
+                }
+                if (!user.authenticate(password)) {
+                    return res.status(401).json({
+                        error: "Invalid email or password",
+                    });
                 }
                 user.otp = dw_otp
                 user.expireotp = Date.now() + 1200000
@@ -238,22 +367,102 @@ exports.login = async (req, res) => {
                         </html>
                     `
                     })
-                    res.json({ message: "OTP sent to E-Mail" })
+                    const { passReset } = user;
+                    res.json({ message: "OTP sent to E-Mail", passReset, })
                 })
 
             })
     }
 };
 
-exports.logout = (req, res) => {
-    // clear the cookie
-    res.clearCookie("jwt");
+async function updateFlag(id) {
+    try {
+        const user = await User.findOne({ username : id });
+        if (!user) {
+            console.log("User not found");
+        } else {
+        user.is_online = false;
+        await user.save();
+        }
+    } catch (error) {
+        console.error("Error logging out:", error);
+    }
+}
 
-    return res.json({
-        message: "Logout Successful"
-    });
+
+exports.logout = (req, res) => {
+    req.session.destroy();
+    updateFlag(req.params.id)
+        .then(() => {
+            // clear the cookie
+            res.clearCookie("jwt", {
+                // Set the same options used when setting the cookie
+                maxAge: 0, // Set the maxAge to 0 to expire the cookie immediately
+                httpOnly: true,
+                secure: true,
+                sameSite: "None"
+            });
+            return res.json({
+                message: "Logout Successful"
+            });
+        })
 };
 
+// add a new service
+exports.addservice = async (req, res) => {
+    const service = new Service(req.body)
+    try {
+        await service.save()
+        res.status(201).json({
+            status: 'Success',
+            data: {
+                service
+            }
+        })
+    } catch (err) {
+        res.status(500).json({
+            status: 'Failed',
+            message: err
+        })
+    }
+};
+
+// delete a service
+exports.removeservice = async (req, res) => {
+    await Service.findByIdAndDelete(req.params.id)
+
+    try {
+        res.status(204).json({
+            status: 'Success',
+            data: {
+                "message": "Service Deleted"
+            }
+        })
+    } catch (err) {
+        res.status(500).json({
+            status: 'Failed',
+            message: err
+        })
+    }
+
+};
+
+exports.updateservice = async (req, res) => {
+    const updatedService = await Service.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+        runValidators: true
+    })
+    try {
+        res.status(200).json({
+            status: 'Success',
+            data: {
+                updatedService
+            }
+        })
+    } catch (err) {
+        console.log(err)
+    }
+}
 
 exports.getLoggedInUser = (req, res) => {
     const { userType, username, _id, email } = req.user;
@@ -288,11 +497,62 @@ exports.resetpassword = (req, res) => {
                         from: "deliverwise@gmail.com",
                         subject: "Reset Password",
                         html: `
-                    <p>As per your request to reset password</p>
-                     <h5>click on this <a href="${process.env.DEPLOY_URL}newpassword/${token_rs}">link</a> to reset password</h5>
+                        <!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <title>Password Reset Email</title>
+                            <style>
+                                /* Add your email styles here */
+                                body {
+                                    font-family: Arial, sans-serif;
+                                    line-height: 1.6;
+                                    margin: 0;
+                                    padding: 0;
+                                    background-color: #f4f4f4;
+                                }
+                                .container {
+                                    max-width: 600px;
+                                    margin: 20px auto;
+                                    padding: 20px;
+                                    background-color: #fff;
+                                    border-radius: 5px;
+                                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                                }
+                                h2 {
+                                    color: #333;
+                                }
+                                p {
+                                    margin-bottom: 20px;
+                                }
+                                a {
+                                    color: #007bff;
+                                    text-decoration: none;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <h2>Password Reset</h2>
+                                <p>Hello ${user.email},</p>
+                                <p>We have received a request to reset your password for your Deliverwise account. To proceed with resetting your password, please follow the instructions below:</p>
+                                <ol>
+                                    <li>Click on the following link to reset your password: <a href="${process.env.DEPLOY_URL}newpassword/${token_rs}">Reset Password</a></li>
+                                    <li>You will be directed to a page where you can enter your new password.</li>
+                                </ol>
+                                <ul>
+                                    <li>If you did not request a password reset, please ignore this email. Your account remains secure.</li>
+                                </ul>
+                                <p>If you encounter any issues or have questions, please feel free to contact our support team at <a href="mailto:deliverwise@gmail.com">DeliverWise Support</a>.</p>
+                                <p>Thank you,</p>
+                                <p>Team DeliverWise</p>
+                            </div>
+                        </body>
+                        </html>
                      `
                     })
-                    res.json({ message: "check email for link to reset password" })
+                    res.json({ message: "Password Reset Email Sent" })
                 })
 
             })
@@ -310,6 +570,7 @@ exports.newpassword = async (req, res) => {
                 return res.status(422).json({ error: "Password reset session expired" })
             }
             user.hashedPassword = crypto.createHmac("sha256", user.salt).update(newpassword).digest("hex");
+            user.passReset = true
             user.resetToken = undefined;
             user.expireToken = undefined;
             user.save().then((saveduser) => {
@@ -320,7 +581,43 @@ exports.newpassword = async (req, res) => {
                 to: user.email,
                 from: "deliverwise@gmail.com",
                 subject: "Password reset successful",
-                html: "<h1>Your password has been successfully reset</h1>"
+                html: `
+                        <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Password Reset Confirmation</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #f4f4f4;
+                            margin: 0;
+                            padding: 0;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            height: 100vh;
+                        }
+                        .container {
+                            text-align: center;
+                            background-color: #fff;
+                            border-radius: 8px;
+                            padding: 20px;
+                            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                        }
+                        h1 {
+                            color: #007bff;
+                            margin-bottom: 20px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>Your password has been successfully reset</h1>
+                    </div>
+                </body>
+                </html>`
             }).catch(err => {
                 console.log(err)
             })
@@ -333,7 +630,6 @@ exports.order = async (req, res) => {
 
     // let's create the order
     const order = new Order(req.body);
-    console.log(order.PriorityStatus, order.TrackingID);
     await order.save();
 
     res.status(201).json({
@@ -343,22 +639,50 @@ exports.order = async (req, res) => {
 
 exports.orderemail = async (req, res) => {
     const email = req.body.email;
-    console.log(email);
     const cost = req.body.Cost;
     const trackingID = req.body.TrackingID;
-    // let user = await User.findOne({ email: email, userType: '10' }).exec();
 
-    // if(!user){
-    // console.log('user not found')
-    // return res.status(422).json({error: "Payment failed!"})}
-    // console.log(user.email)
     transporter.sendMail({
         to: email,
         from: "deliverwise@gmail.com",
         subject: "DeliverWise Payment Invoice",
-        html: `<h2>Thank you for the recent payment that you made for the amount $ ${cost}.
-            This is a confirmation that the amount has been received successfully.
-            Your tracking ID is ${trackingID} .</h2>`
+        html: `<!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Payment Confirmation</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #f4f4f4;
+                            margin: 0;
+                            padding: 0;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            height: 100vh;
+                        }
+                        .container {
+                            text-align: center;
+                            background-color: #fff;
+                            border-radius: 8px;
+                            padding: 20px;
+                            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                        }
+                        h2 {
+                            color: #007bff;
+                            margin-bottom: 20px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <h2>Thank you for the recent payment that you made for the amount $${cost}. </h2>
+                        <h3>This is a confirmation that the amount has been received successfully. Your tracking ID is ${trackingID}.</h3>
+                    </div>
+                </body>
+                </html>`
     }).catch(err => {
         console.log(err)
     })
@@ -413,6 +737,8 @@ exports.readorders = async (req, res) => {
     }
 };
 
+
+
 exports.readuserorders = async (req, res) => {
     const page = req.query.page || 1;
     const perPage = req.query.perPage || 5;
@@ -437,6 +763,7 @@ exports.readuserorders = async (req, res) => {
             });
         }
     } else if (userType == 20) {
+        console.log(req.query);
         const Driver = req.query.email;
         try {
             const count = await Order.countDocuments({ Driver: Driver });
@@ -457,6 +784,16 @@ exports.readuserorders = async (req, res) => {
         }
     }
 
+};
+
+exports.drivers = async (req, res) => {
+    try {
+        const drivers = await User.find({ userType: "20" });
+        return res.status(200).json({ drivers });
+    } catch (error) {
+        console.error('Error fetching drivers:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
 };
 
 exports.orderupdate = async (req, res) => {
@@ -630,3 +967,5 @@ exports.allUsers = async (req, res) => {
 
     res.send(users);
 }
+
+

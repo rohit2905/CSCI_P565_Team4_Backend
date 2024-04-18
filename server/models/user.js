@@ -11,10 +11,34 @@ const userSchema = new mongoose.Schema({
         unique: false,
         lowercase: true,
     },
+    googleId: {
+        type: String,
+        trim: true,
+        unique: false,
+        lowercase: true,
+    },
+    facebookId: {
+        type: String,
+        trim: true,
+        unique: false,
+        lowercase: true,
+    },
     
     username: {
         type: String,
         required: true,
+        trim: true,
+        unique: false,
+        lowercase: true,
+    },
+    securityQuestion: {
+        type: String,
+        trim: true,
+        unique: false,
+        lowercase: true,
+    },
+    securityAnswer: {
+        type: String,
         trim: true,
         unique: false,
         lowercase: true,
@@ -32,10 +56,17 @@ const userSchema = new mongoose.Schema({
     },
     resetToken: String,
     expireToken: Date,
+    passReset: { type: Boolean, default: false },
     
     otp : {
         type : String,
     },
+
+    is_online: {
+        type: Boolean,
+        default: false
+    },
+
     expireotp :{
         type : Date,
     },

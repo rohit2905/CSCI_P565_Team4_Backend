@@ -36,11 +36,11 @@ const createReview = async (req, res) => {
         res.status(201).json({
             message: "You have successfully created the review",
         });
+
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
-
 
 const updateReview = async (req, res) => {
     try {

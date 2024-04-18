@@ -80,6 +80,7 @@ const orderSchema = new mongoose.Schema({
         trim: true,
         unique: false,
         lowercase: true,
+        default: "order placed",
     },
 
     Customer: {
