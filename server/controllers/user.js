@@ -566,7 +566,7 @@ exports.order_details_for_dashboard_Admin = async (req, res) => {
         const orders = await Order.find({ });
         if (!orders || orders.length === 0) {
             return res.status(400).json({
-                error: "No previous orders",
+                error: "No previous orders available.",
             });
         }
 
