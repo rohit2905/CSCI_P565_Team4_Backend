@@ -1,4 +1,7 @@
 const app = require('./app');
+const job=require('./cron.js')
+
+// job.start();
 
 const port = process.env.PORT || 8080;
 const server = app.listen(port, () => {

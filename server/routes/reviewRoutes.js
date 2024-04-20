@@ -16,8 +16,9 @@ router.get("/review/:id", getReview);
 
 router.post("/create-review", createReview);
 
-router.put("/update-review/:id", updateReview);
+router.put("/update-review", updateReview);
+// router.put("/update-review/:useremail/:TrackingID", updateReview);
 
-router.delete("/delete-review/:id", deleteReview);
+router.delete("/delete-review", deleteReview);
 
 module.exports = router;
