@@ -21,4 +21,6 @@ router.put("/update-review", updateReview);
 
 router.delete("/delete-review", deleteReview);
 
+router.get("/all-reviews", getAllReviews);
+
 module.exports = router;
