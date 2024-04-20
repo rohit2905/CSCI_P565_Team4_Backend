@@ -2,11 +2,11 @@ const express = require("express");
 const router = express.Router();
 const review = require("../models/review");
 const {
-    getReviews,
-    getAllReviewsForAdmin,
-    createReview,
-    updateReview,
-    deleteReview,
+  getReviews,
+  getAllReviewsForAdmin,
+  createReview,
+  updateReview,
+  deleteReview,
 } = require("../controllers/reviewController");
 
 // checking the backend is working
@@ -20,7 +20,5 @@ router.put("/update-review", updateReview);
 // router.put("/update-review/:useremail/:TrackingID", updateReview);
 
 router.delete("/delete-review", deleteReview);
-
-router.get("/all-reviews", getAllReviews);
 
 module.exports = router;
