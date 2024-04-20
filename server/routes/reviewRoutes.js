@@ -3,7 +3,7 @@ const router = express.Router();
 const review = require("../models/review");
 const {
     getReviews,
-    getReview,
+    getAllReviewsForAdmin,
     createReview,
     updateReview,
     deleteReview,
@@ -12,7 +12,7 @@ const {
 // checking the backend is working
 router.get("/reviews", getReviews);
 
-router.get("/review/:id", getReview);
+router.get("/allreviews", getAllReviewsForAdmin);
 
 router.post("/create-review", createReview);
 

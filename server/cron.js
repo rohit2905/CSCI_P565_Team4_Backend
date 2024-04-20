@@ -1,18 +1,17 @@
 // / Cron job to hit endpoint every 14 sec to keep backend alive always
 const cron = require ('cron' );
 const https = require ('https');
-const backendUrl = 'provide_backend_api_endpoint_that_is_provided_by_rendor'
-const job = new cron. CronJob ('*/14 * * * *', function () {
+const backendUrl = 'https://dwb-wgcq.onrender.com'
+const job = new cron. CronJob ('*/19 * * * *', function () {
 console. log ('Restarting server'); 
 // Perform an HTTPS GET request to hit any backend api.
 https
-get (backendUrl, (res) => {
+.get (backendUrl, (res) => {
 if (res.statusCode === 200) {
-console.log ('Server restarted');
+console.log ('Server restarted by cron');
 } else {
 console.error (
-'failed to restart server with status code: ${res .statusCode}'
-);
+"failed to restart server by cron with status code: ${res.statusCode}");
 }
 })
 .on ('error',(err) => {

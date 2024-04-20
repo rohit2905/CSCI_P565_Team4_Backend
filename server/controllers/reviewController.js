@@ -11,10 +11,19 @@ const getReviews = async (req, res) => {
     }
 };
 
-const getReview = async (req, res) => {
+// const getReview = async (req, res) => {
+//     try {
+//         const id = req.params.id;
+//         const reviewById = await review.findOne({_id: id});
+//         res.status(200).json(reviewById);
+//     } catch (error) {
+//         res.status(500).json({ message: error.message });
+//     }
+// };
+
+const getAllReviewsForAdmin = async (req, res) => {
     try {
-        const id = req.params.id;
-        const reviewById = await review.findOne({_id: id});
+        const reviewById = await review.find({});
         res.status(200).json(reviewById);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -108,7 +117,7 @@ const deleteReview = async (req, res) => {
 
 module.exports = {
     getReviews,
-    getReview,
+    getAllReviewsForAdmin,
     createReview,
     updateReview,
     deleteReview,
