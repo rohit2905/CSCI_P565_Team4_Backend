@@ -2,9 +2,9 @@
 const cron = require ('cron' );
 const https = require ('https');
 const backendUrl = 'https://dwb-wgcq.onrender.com'
-const job = new cron. CronJob ('*/19 * * * *', function () {
-console. log ('Restarting server'); 
-// Perform an HTTPS GET request to hit any backend api.
+const job = new cron. CronJob ('*/5 * * * *', function () {
+    console.log('Restarting server', new Date());
+    // Perform an HTTPS GET request to hit any backend api.
 https
 .get (backendUrl, (res) => {
 if (res.statusCode === 200) {
