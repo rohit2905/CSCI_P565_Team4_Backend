@@ -66,11 +66,10 @@ app.use("/", messageRoutes);
 
 const serviceRoutes = require("./routes/serviceRoutes");
 app.use("/", serviceRoutes);
+const reviewRoutes = require("./routes/reviewRoutes");
+app.use("/", reviewRoutes)
 
 const authRoutes = require("./routes/auth");
 app.use("/", authRoutes)
-
-const reviewRoutes = require("./routes/reviewRoutes");
-app.use("/", reviewRoutes)
 
 module.exports = app;

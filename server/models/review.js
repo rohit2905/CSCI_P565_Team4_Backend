@@ -15,9 +15,16 @@ const reviewsSchema = mongoose.Schema(
             type: Number,
             required: true,
         },
+        tracking_id:{
+            type:String,
+            required:true,
+        },
     },
     { timestamps: true }
 );
+
+
+
 
 const reviewSchema = mongoose.model("Review", reviewsSchema);
 
